@@ -2,7 +2,6 @@
 
 const EventEmitter = require('events');
 const util = require('util');
-const _ = require('lodash');
 const debug = require('debug');
 const moment = require('moment');
 const developDebugFns = new Map();
