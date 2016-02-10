@@ -9,7 +9,14 @@
     "test-production": "NODE_ENV=production DEBUG=domino-logger:* ./node_modules/.bin/mocha --compilers js:babel-register -R spec test/production.js",
     "test": "npm run test-common && npm run test-development && npm run test-production"
   },
-  "author": "",
+  "maintainers": [
+    "Dmitry Sorin <dsorin@yandex-team.ru>"
+  ],
+  "contributors": [
+    "Dovydenko Vladimir <dovyden@yandex-team.ru>",
+    "Krasulya Georgy <go1664@yandex-team.ru>",
+    "Ostrovsky Anatoly <megatolya@yandex-team.ru>"
+  ],
   "license": "MIT",
   "dependencies": {
     "debug": "2.2.0",
