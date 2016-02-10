@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert');
-const dominoLogger = require('../');
+const dominoLogger = require('../index');
 const intercept = require('./interceptor');
 
 const APP_NAME = require('../package.json').name;
