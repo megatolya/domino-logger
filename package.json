@@ -1,0 +1,23 @@
+{
+  "name": "domino-logger",
+  "version": "1.0.0",
+  "description": "Logger for node.js apps used in Yandex.Mediaservices domino frontend",
+  "main": "index.js",
+  "scripts": {
+    "test-common": "DEBUG=domino-logger:* ./node_modules/.bin/mocha --compilers js:babel-register -R spec --slow 1000 test/index.js",
+    "test-development": "DEBUG=domino-logger:* ./node_modules/.bin/mocha --compilers js:babel-register -R spec test/development.js",
+    "test-production": "NODE_ENV=production DEBUG=domino-logger:* ./node_modules/.bin/mocha --compilers js:babel-register -R spec test/production.js",
+    "test": "npm run test-common && npm run test-development && npm run test-production"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "debug": "2.2.0",
+    "moment": "2.11.2"
+  },
+  "devDependencies": {
+    "babel-preset-es2015": "6.5.0",
+    "babel-register": "6.5.1",
+    "mocha": "2.4.5"
+  }
+}
