@@ -1,6 +1,6 @@
 {
   "name": "domino-logger",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Logger for node.js apps used in Yandex.Mediaservices domino frontend",
   "main": "index.js",
   "scripts": {
