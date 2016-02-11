@@ -21,11 +21,12 @@ function formatDefault(req, namespace, message) {
 }
 
 class Logger extends EventEmitter {
-    constructor({req, namespace, emitErrors = true, format = formatDefault}) {
+    constructor({req, appNamespace, namespace, emitErrors = true, format = formatDefault}) {
         super();
 
         this._req = req;
         this._format = format;
+        this._appNamespace = appNamespace;
         this._namespace = namespace || '';
         this._emitErrors = emitErrors;
     }
@@ -38,6 +39,22 @@ class Logger extends EventEmitter {
             });
         }
     }
+
+    log() {
+        return this.info(...arguments);
+    }
+
+    logNS() {
+        return this.infoNS(...arguments);
+    }
+
+    warn() {
+        return this.error(...arguments);
+    }
+
+    warnNS() {
+        return this.errorNS(...arguments);
+    }
 }
 
 class ProductionLogger extends Logger {
@@ -47,7 +64,7 @@ class ProductionLogger extends Logger {
     }
 
     infoNS(namespace, ...args) {
-        args.unshift({stream: 'log', namespace: `${this._namespace}:${namespace}`});
+        args.unshift({stream: 'log', namespace: `${this._appNamespace}:${namespace}`});
         this._log(...args);
     }
 
@@ -57,7 +74,7 @@ class ProductionLogger extends Logger {
     }
 
     errorNS(namespace, ...args) {
-        args.unshift({stream: 'error', namespace: `${this._namespace}:${namespace}`});
+        args.unshift({stream: 'error', namespace: `${this._appNamespace}:${namespace}`});
         this._log(...args);
     }
 
@@ -72,30 +89,40 @@ class ProductionLogger extends Logger {
 }
 
 class DevelopmentLogger extends Logger {
-    info(...args) {
-        const methodNamespace = `${this._namespace}:info`;
-        this._log('log', methodNamespace, ...args);
+    info() {
+        this._log({
+            stream: 'log',
+            namespace: `${this._namespace}:info`
+        }, ...arguments);
     }
 
     infoNS(namespace, ...args) {
-        this._log('log', namespace, ...args);
+        this._log({
+            stream: 'log',
+            namespace: `${this._appNamespace}:${namespace}`
+        }, ...args);
     }
 
-    error(...args) {
-        const methodNamespace = `${this._namespace}:error`;
-        this._log('error', methodNamespace, ...args);
+    error() {
+        this._log({
+            stream: 'error',
+            namespace: `${this._namespace}:error`
+        }, ...arguments);
     }
 
     errorNS(namespace, ...args) {
-        this._log('error', namespace, ...args);
+        this._log({
+            stream: 'error',
+            namespace: `${this._appNamespace}:${namespace}`
+        }, ...args);
     }
 
-    _log(level, namespace, ...args) {
+    _log({stream, namespace}, ...args) {
         if (!developDebugFns.has(namespace)) {
             developDebugFns.set(namespace, debug(namespace));
         }
 
-        if (level === 'error') {
+        if (stream === 'error') {
             this._emitError(namespace, ...args);
         }
 
@@ -117,6 +144,7 @@ module.exports = function (appNamespace) {
      */
     return function exportsLogger(options = {}) {
         const instanceOptions = Object.assign({
+            appNamespace,
             req: null,
             format: undefined,
             namespace: null,
