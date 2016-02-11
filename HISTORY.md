@@ -1,3 +1,8 @@
+## 1.1.0
+
+ * **new**: `log/logNS` methods - synonyms to `info/infoNS`
+ * **new**: `warn/warnNS` methods - synonyms to `error/errorNS`
+
 ## 1.0.1
 
  * build code suitable for nodejs-4 running apps with Babel
