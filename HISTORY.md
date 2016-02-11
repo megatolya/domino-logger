@@ -1,3 +1,7 @@
+## 1.1.1
+
+ * `req` property is exposed in error events
+
 ## 1.1.0
 
  * **new**: `log/logNS` methods - synonyms to `info/infoNS`

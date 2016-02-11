@@ -30,24 +30,24 @@ describe('domino-logger', () => {
         const loggerFactory = dominoLogger(APP_NAME);
         const logger = loggerFactory();
 
-        return new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => {
-                reject(new Error('No error event was caught'));
-            }, 300);
+        let error;
+        const timeout = setTimeout(() => {
+            reject(new Error('No error event was caught'));
+        }, 300);
 
-            logger.on('error', ({namespace, message}) => {
-                clearTimeout(timeout);
+        logger.on('error', err => {
+            clearTimeout(timeout);
+            error = err;
+        });
 
-                assert.strictEqual(namespace, `${APP_NAME}:error`, `Namespace should be ${APP_NAME}:error`);
-                assert.strictEqual(message, 'Some kind of error', `Message text is unexpected: ${message}`);
-
-                resolve();
-            });
-
-            // do not spoil output
-            intercept(() => {
-                logger.error('Some kind of error');
-            });
+        // do not spoil output
+        return intercept(() => {
+            logger.error('Some kind of error');
+        }).then(() => {
+            assert.notStrictEqual(error, undefined, 'Error should exist');
+            assert.strictEqual(error.namespace, `${APP_NAME}:error`, `Namespace should be ${APP_NAME}:error`);
+            assert.strictEqual(error.message, 'Some kind of error', `Message text is unexpected: ${error.message}`);
+            assert.notStrictEqual(error.req, undefined, 'Request should be at least null');
         });
     });
 

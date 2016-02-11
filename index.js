@@ -35,6 +35,7 @@ class Logger extends EventEmitter {
         if (this._emitErrors) {
             this.emit('error', {
                 namespace,
+                req: this._req,
                 message: util.format(...args)
             });
         }
