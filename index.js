@@ -41,55 +41,6 @@ class Logger extends EventEmitter {
         }
     }
 
-    log() {
-        return this.info(...arguments);
-    }
-
-    logNS() {
-        return this.infoNS(...arguments);
-    }
-
-    warn() {
-        return this.error(...arguments);
-    }
-
-    warnNS() {
-        return this.errorNS(...arguments);
-    }
-}
-
-class ProductionLogger extends Logger {
-    info(...args) {
-        args.unshift({stream: 'log'});
-        this._log(...args);
-    }
-
-    infoNS(namespace, ...args) {
-        args.unshift({stream: 'log', namespace: `${this._appNamespace}:${namespace}`});
-        this._log(...args);
-    }
-
-    error(...args) {
-        args.unshift({stream: 'error'});
-        this._log(...args);
-    }
-
-    errorNS(namespace, ...args) {
-        args.unshift({stream: 'error', namespace: `${this._appNamespace}:${namespace}`});
-        this._log(...args);
-    }
-
-    _log({stream, namespace = this._namespace}, ...args) {
-        if (stream === 'error') {
-            this._emitError(namespace, ...args);
-        }
-
-        const line = this._format(this._req, namespace, util.format(...args));
-        console[stream](line);
-    }
-}
-
-class DevelopmentLogger extends Logger {
     info() {
         this._log({
             stream: 'log',
@@ -118,6 +69,47 @@ class DevelopmentLogger extends Logger {
         }, ...args);
     }
 
+    warn() {
+        this._log({
+            stream: 'error',
+            namespace: `${this._namespace}:warn`
+        }, ...arguments);
+    }
+
+    warnNS(namespace, ...args) {
+        this._log({
+            stream: 'error',
+            namespace: `${this._appNamespace}:${namespace}`
+        }, ...args);
+    }
+
+    log() {
+        this._log({
+            stream: 'error',
+            namespace: `${this._namespace}:log`
+        }, ...arguments);
+    }
+
+    logNS(namespace, ...args) {
+        this._log({
+            stream: 'error',
+            namespace: `${this._appNamespace}:${namespace}`
+        }, ...args);
+    }
+}
+
+class ProductionLogger extends Logger {
+    _log({stream, namespace}, ...args) {
+        if (stream === 'error') {
+            this._emitError(namespace, ...args);
+        }
+
+        const line = this._format(this._req, namespace, util.format(...args));
+        console[stream](line);
+    }
+}
+
+class DevelopmentLogger extends Logger {
     _log({stream, namespace}, ...args) {
         if (!developDebugFns.has(namespace)) {
             developDebugFns.set(namespace, debug(namespace));

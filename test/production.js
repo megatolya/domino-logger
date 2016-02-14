@@ -53,7 +53,7 @@ describe('domino-logger NODE_ENV=production', () => {
             const stderrMessage = messages.get(process.stderr)[0].trim();
 
             // date differs so it's not necessary to check it
-            let expectedMessage = dominoLogger.defaultFormat(null, APP_NAME, 'Error: error description ({"foo":"bar"})');
+            let expectedMessage = dominoLogger.defaultFormat(null, `${APP_NAME}:error`, 'Error: error description ({"foo":"bar"})');
             const stderrDate = stderrMessage.split('\t')[0];
             expectedMessage = `${stderrDate}${expectedMessage.substr(stderrDate.length)}`;
 
@@ -93,6 +93,29 @@ describe('domino-logger NODE_ENV=production', () => {
             const expectedMessage = customFormat(reqMock, APP_NAME, 'Error: error description ({"foo":"bar"})');
 
             assert.strictEqual(stderrMessage, expectedMessage, 'Output message format is invalid');
+        });
+    });
+
+    it('should send all methods logs to stderr instead of info', () => {
+        const METHODS = ['log', 'info', 'warn', 'error'];
+        const loggerFactory = dominoLogger(APP_NAME);
+        const logger = loggerFactory({emitErrors: false});
+
+        return intercept(() => {
+            for (let method of METHODS) {
+                logger[method]('message without NS');
+                logger[`${method}NS`]('custom', 'message with NS');
+            }
+        }).then(messages => {
+            const stderrMessages = messages.get(process.stderr);
+            const stdoutMessages = messages.get(process.stdout);
+            assert.strictEqual(stderrMessages.length, 6, 'stderr should have exactly 8 messages');
+            assert.strictEqual(stdoutMessages.length, 2, 'stdout should have exactly 2 messages');
+
+            assert(stdoutMessages[0].includes('message without NS'), `stdout[0] should have exected message`);
+            assert(stdoutMessages[0].includes(`${APP_NAME}:info`), `stdout[0] should have exected message`);
+            assert(stdoutMessages[1].includes('message with NS'), `stdout[1] should have exected message`);
+            assert(stdoutMessages[1].includes(`${APP_NAME}:custom`), `stdout[1] should have exected message`);
         });
     });
 });
