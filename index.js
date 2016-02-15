@@ -44,6 +44,7 @@ class Logger extends EventEmitter {
     info() {
         this._log({
             stream: 'log',
+            method: 'info',
             namespace: `${this._namespace}:info`
         }, ...arguments);
     }
@@ -51,6 +52,7 @@ class Logger extends EventEmitter {
     infoNS(namespace, ...args) {
         this._log({
             stream: 'log',
+            method: 'info',
             namespace: `${this._appNamespace}:${namespace}`
         }, ...args);
     }
@@ -58,6 +60,7 @@ class Logger extends EventEmitter {
     error() {
         this._log({
             stream: 'error',
+            method: 'error',
             namespace: `${this._namespace}:error`
         }, ...arguments);
     }
@@ -65,6 +68,7 @@ class Logger extends EventEmitter {
     errorNS(namespace, ...args) {
         this._log({
             stream: 'error',
+            method: 'error',
             namespace: `${this._appNamespace}:${namespace}`
         }, ...args);
     }
@@ -72,6 +76,7 @@ class Logger extends EventEmitter {
     warn() {
         this._log({
             stream: 'error',
+            method: 'warn',
             namespace: `${this._namespace}:warn`
         }, ...arguments);
     }
@@ -79,6 +84,7 @@ class Logger extends EventEmitter {
     warnNS(namespace, ...args) {
         this._log({
             stream: 'error',
+            method: 'warn',
             namespace: `${this._appNamespace}:${namespace}`
         }, ...args);
     }
@@ -86,6 +92,7 @@ class Logger extends EventEmitter {
     log() {
         this._log({
             stream: 'error',
+            method: 'log',
             namespace: `${this._namespace}:log`
         }, ...arguments);
     }
@@ -93,14 +100,15 @@ class Logger extends EventEmitter {
     logNS(namespace, ...args) {
         this._log({
             stream: 'error',
+            method: 'log',
             namespace: `${this._appNamespace}:${namespace}`
         }, ...args);
     }
 }
 
 class ProductionLogger extends Logger {
-    _log({stream, namespace}, ...args) {
-        if (stream === 'error') {
+    _log({stream, namespace, method}, ...args) {
+        if (method === 'error') {
             this._emitError(namespace, ...args);
         }
 

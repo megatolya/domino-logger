@@ -1,3 +1,7 @@
+## 2.0.1
+
+ * fix: only error/errorNS methods emit errors
+
 ## 2.0.0
 
  * 100% compatibility with current domino logs: all methods logs fall into their own namespaces (not synonyms), log falls into stderr in `NODE_ENV=production` environment
