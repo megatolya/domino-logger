@@ -5,6 +5,8 @@
 
 Logger for node.js apps used in Yandex.Mediaservices domino frontend. Uses `debug` in development and process.stdout/stderr in production environment. Supports namespaces.
 
+Post on Medium.com: https://medium.com/@1999/domino-logger-why-we-wrote-another-logger-for-our-node-js-app-ed11a2a8958b
+
 # Install
 
 ```
