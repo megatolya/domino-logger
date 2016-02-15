@@ -118,12 +118,12 @@ class ProductionLogger extends Logger {
 }
 
 class DevelopmentLogger extends Logger {
-    _log({stream, namespace}, ...args) {
+    _log({stream, namespace, method}, ...args) {
         if (!developDebugFns.has(namespace)) {
             developDebugFns.set(namespace, debug(namespace));
         }
 
-        if (stream === 'error') {
+        if (method === 'error') {
             this._emitError(namespace, ...args);
         }
 

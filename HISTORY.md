@@ -1,3 +1,7 @@
+## 2.0.2
+
+ * fix: same for development environment (2.0.1)
+
 ## 2.0.1
 
  * fix: only error/errorNS methods emit errors

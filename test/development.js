@@ -36,4 +36,25 @@ describe('domino-logger NODE_ENV=development', () => {
             assert(stderrMessages[2].includes('What a nice weather today!'), 'stderr should also contain info-message because debug uses stderr by default');
         });
     });
+
+    it('should emit errors only for error/errorNS', () => {
+        const loggerFactory = dominoLogger(APP_NAME);
+        const logger = loggerFactory();
+        const errors = [];
+
+        logger.on('error', err => errors.push(err));
+
+        return intercept(() => {
+            logger.error('message without NS');
+            logger.errorNS('custom', 'message with NS');
+            logger.log('another message');
+        }).then(messages => {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    assert.strictEqual(errors.length, 2, 'Only 2 errors should have been emitted');
+                    resolve();
+                }, 300);
+            });
+        });
+    });
 });
