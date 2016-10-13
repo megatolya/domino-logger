@@ -147,4 +147,22 @@ describe('domino-logger NODE_ENV=production', () => {
             assert.strictEqual(stderrMessage, expectedMessage, 'Output message format is invalid');
         });
     });
+
+    it('logs with number and same string value should be equal', () => {
+        const extra = {foo: 'bar'};
+        const loggerFactory = dominoLogger(APP_NAME);
+        const logger = loggerFactory({
+            emitErrors: false,
+            req: null
+        });
+
+        return intercept(() => {
+            logger.logNS('namespace', 42, extra);
+            logger.logNS('namespace', '42', extra);
+        }).then(messages => {
+            const stderrMessages = messages.get(process.stderr);
+
+            assert.strictEqual(stderrMessages[0], stderrMessages[1], 'Messages should be equal');
+        });
+    });
 });
