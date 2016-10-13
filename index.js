@@ -1,5 +1,6 @@
 'use strict';
 
+const assert = require('assert');
 const EventEmitter = require('events');
 const util = require('util');
 const debug = require('debug');
@@ -14,11 +15,31 @@ const IS_PRODUCTION = (process.env.NODE_ENV === 'production');
  * @param {http.IncomingMessage} req
  * @param {String} namespace
  * @param {String} message
- * @param {Object} [extra]
+ * @param {Map} [map]
  * @return {String} result string
  */
-function formatDefault(req, namespace, message, extra = {}) {
-    return `${moment().format('YYYY-MM-DD HH:mm:ss.SSS')}\t${namespace}\tpid:${process.pid}\t${message}${Object.keys(extra).length ? `\t${JSON.stringify(extra)}` : ''}`;
+function formatDefault(req, namespace, message, map) {
+    let obj = {};
+
+    if (map instanceof Map) {
+        map.forEach((value, key) => {
+            obj[key] = value;
+        });
+    }
+
+    return `${moment().format('YYYY-MM-DD HH:mm:ss.SSS')}\t${namespace}\tpid:${process.pid}\t${message}${obj.length > 0 ? `\t${JSON.stringify(obj)}` : ''}`;
+}
+
+function convertMapToObject(map) {
+    let obj = {};
+
+    if (map instanceof Map) {
+        map.forEach((value, key) => {
+            obj[key] = value;
+        });
+    }
+
+    return obj;
 }
 
 class Logger extends EventEmitter {
@@ -105,6 +126,32 @@ class Logger extends EventEmitter {
             namespace: `${this._appNamespace}:${namespace}`
         }, ...args);
     }
+
+    _splitArguments(...args) {
+        // @link https://nodejs.org/api/util.html#util_util_format_format_args
+        // Trying to find placeholders in first argument
+        // And then calculate all arguments
+        // Maybe last one is object, which we should pass to formatter as a separate argument
+        let map;
+
+        if (args.length > 1 && typeof args[0] === 'string') {
+            const placeholders = args[0].match(/%(s|d|j|%)/ig);
+            const hasPlaceholdersWithMap = placeholders && args.length - 1 > placeholders.length;
+            const hasNoPlaceholdersWithMap = !placeholders && args.length > 1;
+            let lastArgument = args[args.length - 1];
+
+            if ((hasPlaceholdersWithMap || hasNoPlaceholdersWithMap) && (lastArgument instanceof Map)) {
+                map = args.pop();
+            }
+        }
+
+        const message = util.format(...args);
+
+        return {
+            map,
+            message
+        };
+    }
 }
 
 class ProductionLogger extends Logger {
@@ -112,25 +159,8 @@ class ProductionLogger extends Logger {
      * @override
      */
     _log({stream, namespace, method}, ...args) {
-        // @link https://nodejs.org/api/util.html#util_util_format_format_args
-        // Trying to find placeholders in first argument
-        // And then calculate all arguments
-        // Maybe last one is object, which we should pass to formatter as a separate argument
-        let extra = {};
-
-        if (args.length > 1 && typeof args[0] === 'string') {
-            const placeholders = args[0].match(/%(s|d|j|%)/ig);
-            const hasPlaceholdersWithExtra = placeholders && args.length - 1 > placeholders.length;
-            const hasNoPlaceholdersWithExtra = !placeholders && args.length > 1;
-            let lastArgument = args[args.length - 1];
-
-            if ((hasPlaceholdersWithExtra || hasNoPlaceholdersWithExtra) && (typeof lastArgument === 'object' && lastArgument !== null)) {
-                extra = args.pop();
-            }
-        }
-
-        const message = util.format(...args);
-        const line = this._format(this._req, namespace, message, extra);
+        const {message, map} = this._splitArguments(...args);
+        const line = this._format(this._req, namespace, message, map);
 
         if (method === 'error') {
             this._emitError(namespace, message);
@@ -145,17 +175,22 @@ class DevelopmentLogger extends Logger {
      * @override
      */
     _log({stream, namespace, method}, ...args) {
+        const {message, map} = this._splitArguments(...args);
+        let obj = convertMapToObject(map);
+        obj = Object.keys(obj).length ? JSON.stringify(obj) : null;
+        const line = [message, obj].filter(Boolean).join(' ');
+
         if (!developDebugFns.has(namespace)) {
             developDebugFns.set(namespace, debug(namespace));
         }
 
         if (method === 'error') {
-            this._emitError(namespace, ...args);
+            this._emitError(namespace, line);
         }
 
         const logFn = developDebugFns.get(namespace);
 
-        logFn(...args);
+        logFn(line);
     }
 }
 

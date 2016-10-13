@@ -126,10 +126,16 @@ describe('domino-logger NODE_ENV=production', () => {
     });
 
     it('should have extra object at last argument', () => {
-        function customFormat(req, namespace, message, extra) {
-            return `namespace:${namespace}\tmessage:${message}\textra:${JSON.stringify(extra)}`;
+        function customFormat(req, namespace, message, map) {
+            let obj = {};
+            map.forEach((value, key) => {
+                obj[key] = value;
+            });
+
+            return `namespace:${namespace}\tmessage:${message}\tmap:${JSON.stringify(obj)}`;
         }
 
+        const mapArgument = new Map([['foo', 'bar']]);
         const loggerFactory = dominoLogger(APP_NAME);
         const logger = loggerFactory({
             emitErrors: false,
@@ -138,10 +144,10 @@ describe('domino-logger NODE_ENV=production', () => {
         });
 
         return intercept(() => {
-            logger.logNS('namespace', 'log description', {foo: 'bar'});
+            logger.logNS('namespace', 'log description', mapArgument);
         }).then(messages => {
             const stderrMessage = messages.get(process.stderr)[0].trim();
-            const expectedMessage = customFormat(null, `${APP_NAME}:namespace`, 'log description', {foo: 'bar'});
+            const expectedMessage = customFormat(null, `${APP_NAME}:namespace`, 'log description', mapArgument);
 
             assert.strictEqual(stderrMessage, expectedMessage, 'Output message format is invalid');
         });

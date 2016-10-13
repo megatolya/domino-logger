@@ -31,10 +31,10 @@ const loggerFactory = dominoLogger('kinopoisk');
 // - format: custom formatting function for production environment
 //     invoked with req (http.incomingMessage), namespace, message and extra
 // - namespace: next level namespace (log namespace is appname:nextlevel then)
-// - extra: some additional object you can use in `format` function
+// - map: some additional `Map` you can use in `format` function
 const loggerInstance = loggerFactory({
     // for example like this
-    format(req, namespace, message, extra) {
+    format(req, namespace, message, map) {
         return moment().format('YYYY-MM-DD HH:mm:ss.SSS') + '\t' +
             'pid:' + process.pid + '\t' +
             'request_id:' + req.uuid + '\t' +

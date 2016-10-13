@@ -8,11 +8,6 @@ const APP_NAME = require('../package.json').name;
 
 describe('domino-logger NODE_ENV=development', () => {
     it('should output debug logs in development environment', () => {
-        if (process.env.NODE_ENV === 'production') {
-            console.warn(`NODE_ENV is invalid for this test: ${process.env.NODE_ENV}`);
-            return;
-        }
-
         const loggerFactory = dominoLogger(APP_NAME);
         const logger = loggerFactory({
             emitErrors: false
@@ -48,13 +43,25 @@ describe('domino-logger NODE_ENV=development', () => {
             logger.error('message without NS');
             logger.errorNS('custom', 'message with NS');
             logger.log('another message');
-        }).then(messages => {
+        }).then(() => {
             return new Promise(resolve => {
                 setTimeout(() => {
                     assert.strictEqual(errors.length, 2, 'Only 2 errors should have been emitted');
                     resolve();
                 }, 300);
             });
+        });
+    });
+
+    it('should contains stringify JSON on log message', () => {
+        const loggerFactory = dominoLogger(APP_NAME);
+        const logger = loggerFactory();
+        const expectedMessage = JSON.stringify({key: 'value'});
+
+        return intercept(() => {
+            logger.log('some message', new Map([['key', 'value']]));
+        }).then(messages => {
+            assert(messages.get(process.stderr)[0].includes(expectedMessage));
         });
     });
 });

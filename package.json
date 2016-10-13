@@ -16,7 +16,8 @@
   "contributors": [
     "Dovydenko Vladimir <dovyden@yandex-team.ru>",
     "Krasulya Georgy <go1664@yandex-team.ru>",
-    "Ostrovsky Anatoly <megatolya@yandex-team.ru>"
+    "Ostrovsky Anatoly <megatolya@yandex-team.ru>",
+    "Vyacheslav Glushko <ixax@yandex-team.ru>"
   ],
   "license": "MIT",
   "dependencies": {
