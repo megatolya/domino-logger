@@ -114,11 +114,16 @@ class Logger extends EventEmitter {
         // Maybe last one is object, which we should pass to formatter as a separate argument
         let extra;
 
-        if (args.length > 1 && typeof args[0] === 'string') {
-            const placeholders = args[0].match(/%(s|d|j|%)/ig);
+        if (args.length > 1) {
+            let placeholders;
+
+            if (typeof args[0] === 'string') {
+                placeholders = args[0].match(/%(s|d|j|%)/ig);
+            }
+
             const hasPlaceholdersWithMap = placeholders && args.length - 1 > placeholders.length;
             const hasNoPlaceholdersWithMap = !placeholders && args.length > 1;
-            let lastArgument = args[args.length - 1];
+            const lastArgument = args[args.length - 1];
 
             if ((hasPlaceholdersWithMap || hasNoPlaceholdersWithMap) && typeof lastArgument === 'object' && lastArgument !== null) {
                 extra = args.pop();
