@@ -7,10 +7,10 @@
   "scripts": {
     "lint": "./node_modules/.bin/eslint index.js test/",
     "prepublish": "./node_modules/.bin/babel index.js --out-file build.js",
-    "test-common": "DEBUG=domino-logger:* ./node_modules/.bin/mocha --compilers js:babel-register -R spec --slow 1000 test/common.js",
-    "test-development": "DEBUG=domino-logger:* ./node_modules/.bin/mocha --compilers js:babel-register -R spec --slow 1000 test/development.js",
-    "test-production": "NODE_ENV=production DEBUG=domino-logger:* ./node_modules/.bin/mocha --compilers js:babel-register -R spec --slow 1000 test/production.js",
-    "test": "npm run test-common && npm run test-development && npm run test-production"
+    "test:common": "DEBUG=domino-logger:* ./node_modules/.bin/mocha --compilers js:babel-register -R spec --slow 1000 test/common.js",
+    "test:development": "DEBUG=domino-logger:* ./node_modules/.bin/mocha --compilers js:babel-register -R spec --slow 1000 test/development.js",
+    "test:production": "NODE_ENV=production DEBUG=domino-logger:* ./node_modules/.bin/mocha --compilers js:babel-register -R spec --slow 1000 test/production.js",
+    "test": "npm run test:common && npm run test:development && npm run test:production"
   },
   "maintainers": [
     "Dmitry Sorin <dsorin@yandex-team.ru>"
