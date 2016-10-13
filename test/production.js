@@ -8,11 +8,6 @@ const APP_NAME = require('../package.json').name;
 
 describe('domino-logger NODE_ENV=production', () => {
     it('should output debug logs in production environment', () => {
-        if (process.env.NODE_ENV !== 'production') {
-            console.warn(`NODE_ENV is invalid for this test: ${process.env.NODE_ENV}`);
-            return;
-        }
-
         const loggerFactory = dominoLogger(APP_NAME);
         const logger = loggerFactory({
             emitErrors: false
@@ -37,11 +32,6 @@ describe('domino-logger NODE_ENV=production', () => {
     });
 
     it('should use default formatter function by default', () => {
-        if (process.env.NODE_ENV !== 'production') {
-            console.warn(`NODE_ENV is invalid for this test: ${process.env.NODE_ENV}`);
-            return;
-        }
-
         const loggerFactory = dominoLogger(APP_NAME);
         const logger = loggerFactory({
             emitErrors: false
@@ -62,11 +52,6 @@ describe('domino-logger NODE_ENV=production', () => {
     });
 
     it('should use provided format', () => {
-        if (process.env.NODE_ENV !== 'production') {
-            console.warn(`NODE_ENV is invalid for this test: ${process.env.NODE_ENV}`);
-            return;
-        }
-
         function customFormat(req, namespace, message) {
             return `guid:${req.uuid}\tuid:${req.user.uid}\tlogin:${req.user.login}\t${message}`;
         }
@@ -130,13 +115,36 @@ describe('domino-logger NODE_ENV=production', () => {
             logger.error('message without NS');
             logger.errorNS('custom', 'message with NS');
             logger.log('another message');
-        }).then(messages => {
+        }).then(() => {
             return new Promise(resolve => {
                 setTimeout(() => {
                     assert.strictEqual(errors.length, 2, 'Only 2 errors should have been emitted');
                     resolve();
                 }, 300);
             });
+        });
+    });
+
+    it('should have extra object at last argument', () => {
+        function customFormat(req, namespace, message, extra) {
+            return `namespace:${namespace}\tmessage:${message}\textra:${JSON.stringify(extra)}`;
+        }
+
+        const extra = {foo: 'bar'};
+        const loggerFactory = dominoLogger(APP_NAME);
+        const logger = loggerFactory({
+            emitErrors: false,
+            req: null,
+            format: customFormat
+        });
+
+        return intercept(() => {
+            logger.logNS('namespace', 'log description', extra);
+        }).then(messages => {
+            const stderrMessage = messages.get(process.stderr)[0].trim();
+            const expectedMessage = customFormat(null, `${APP_NAME}:namespace`, 'log description', extra);
+
+            assert.strictEqual(stderrMessage, expectedMessage, 'Output message format is invalid');
         });
     });
 });
