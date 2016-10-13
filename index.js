@@ -19,13 +19,7 @@ const IS_PRODUCTION = (process.env.NODE_ENV === 'production');
  * @return {String} result string
  */
 function formatDefault(req, namespace, message, map) {
-    let obj = {};
-
-    if (map instanceof Map) {
-        map.forEach((value, key) => {
-            obj[key] = value;
-        });
-    }
+    const obj = convertMapToObject(map);
 
     return `${moment().format('YYYY-MM-DD HH:mm:ss.SSS')}\t${namespace}\tpid:${process.pid}\t${message}${obj.length > 0 ? `\t${JSON.stringify(obj)}` : ''}`;
 }
