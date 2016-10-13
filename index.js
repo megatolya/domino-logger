@@ -17,8 +17,8 @@ const IS_PRODUCTION = (process.env.NODE_ENV === 'production');
  * @param {Object} [extra]
  * @return {String} result string
  */
-function formatDefault(req, ns, message, extra = {}) {
-    return `${moment().format('YYYY-MM-DD HH:mm:ss.SSS')}\t${ns}\tpid:${process.pid}\t${message}\t${JSON.stringify(extra)}`;
+function formatDefault(req, namespace, message, extra = {}) {
+    return `${moment().format('YYYY-MM-DD HH:mm:ss.SSS')}\t${namespace}\tpid:${process.pid}\t${message}\t${JSON.stringify(extra)}`;
 }
 
 class Logger extends EventEmitter {
@@ -101,7 +101,7 @@ class Logger extends EventEmitter {
             this.emit('error', {
                 namespace,
                 req: this._req,
-                message: message
+                message
             });
         }
     }

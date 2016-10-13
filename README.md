@@ -42,7 +42,7 @@ const loggerInstance = loggerFactory({
             namespace + '\t' +
             message;
     }
-}).on('error', ({req, namespace, message, extra}) => {
+}).on('error', ({req, namespace, message}) => {
     // handle errors
 });
 
