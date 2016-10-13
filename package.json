@@ -3,6 +3,7 @@
   "version": "2.1.1",
   "description": "Logger for node.js apps used in Yandex.Mediaservices domino frontend",
   "main": "build.js",
+  "repository": "https://github.com/1999/domino-logger.git",
   "scripts": {
     "lint": "./node_modules/.bin/eslint index.js test/",
     "prepublish": "./node_modules/.bin/babel index.js --out-file build.js",
