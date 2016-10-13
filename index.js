@@ -12,13 +12,13 @@ const IS_PRODUCTION = (process.env.NODE_ENV === 'production');
  * Default formatter function for production environment
  *
  * @param {http.IncomingMessage} req
- * @param {String} ns
+ * @param {String} namespace
  * @param {String} message
  * @param {Object} [extra]
  * @return {String} result string
  */
 function formatDefault(req, namespace, message, extra = {}) {
-    return `${moment().format('YYYY-MM-DD HH:mm:ss.SSS')}\t${namespace}\tpid:${process.pid}\t${message}\t${JSON.stringify(extra)}`;
+    return `${moment().format('YYYY-MM-DD HH:mm:ss.SSS')}\t${namespace}\tpid:${process.pid}\t${message}${Object.keys(extra).length ? `\t${JSON.stringify(extra)}` : ''}`;
 }
 
 class Logger extends EventEmitter {
@@ -30,6 +30,16 @@ class Logger extends EventEmitter {
         this._appNamespace = appNamespace;
         this._namespace = namespace || '';
         this._emitErrors = emitErrors;
+    }
+
+    _emitError(namespace, message) {
+        if (this._emitErrors) {
+            this.emit('error', {
+                namespace,
+                req: this._req,
+                message
+            });
+        }
     }
 
     info() {
@@ -95,16 +105,6 @@ class Logger extends EventEmitter {
             namespace: `${this._appNamespace}:${namespace}`
         }, ...args);
     }
-
-    _emitError(namespace, message) {
-        if (this._emitErrors) {
-            this.emit('error', {
-                namespace,
-                req: this._req,
-                message
-            });
-        }
-    }
 }
 
 class ProductionLogger extends Logger {
@@ -120,10 +120,11 @@ class ProductionLogger extends Logger {
 
         if (args.length > 1 && typeof args[0] === 'string') {
             const placeholders = args[0].match(/%(s|d|j|%)/ig);
-            const ifPlaceholdersWithExtra = placeholders && args.length - 1 > placeholders.length;
-            const ifNoPlaceholdersWithExtra = !placeholders && args.length > 1;
+            const hasPlaceholdersWithExtra = placeholders && args.length - 1 > placeholders.length;
+            const hasNoPlaceholdersWithExtra = !placeholders && args.length > 1;
+            let lastArgument = args[args.length - 1];
 
-            if (ifPlaceholdersWithExtra || ifNoPlaceholdersWithExtra) {
+            if ((hasPlaceholdersWithExtra || hasNoPlaceholdersWithExtra) && (typeof lastArgument === 'object' && lastArgument !== null)) {
                 extra = args.pop();
             }
         }
