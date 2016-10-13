@@ -97,10 +97,10 @@ describe('domino-logger NODE_ENV=production', () => {
             assert.strictEqual(stderrMessages.length, 6, 'stderr should have exactly 8 messages');
             assert.strictEqual(stdoutMessages.length, 2, 'stdout should have exactly 2 messages');
 
-            assert(stdoutMessages[0].includes('message without NS'), `stdout[0] should have exected message`);
-            assert(stdoutMessages[0].includes(`${APP_NAME}:info`), `stdout[0] should have exected message`);
-            assert(stdoutMessages[1].includes('message with NS'), `stdout[1] should have exected message`);
-            assert(stdoutMessages[1].includes(`${APP_NAME}:custom`), `stdout[1] should have exected message`);
+            assert(stdoutMessages[0].includes('message without NS'), 'stdout[0] should have exected message');
+            assert(stdoutMessages[0].includes(`${APP_NAME}:info`), 'stdout[0] should have exected message');
+            assert(stdoutMessages[1].includes('message with NS'), 'stdout[1] should have exected message');
+            assert(stdoutMessages[1].includes(`${APP_NAME}:custom`), 'stdout[1] should have exected message');
         });
     });
 

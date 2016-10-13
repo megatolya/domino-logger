@@ -31,12 +31,8 @@ describe('domino-logger', () => {
         const logger = loggerFactory();
 
         let error;
-        const timeout = setTimeout(() => {
-            reject(new Error('No error event was caught'));
-        }, 300);
 
         logger.on('error', err => {
-            clearTimeout(timeout);
             error = err;
         });
 
@@ -58,7 +54,7 @@ describe('domino-logger', () => {
         return new Promise((resolve, reject) => {
             const timeout = setTimeout(resolve, 300);
 
-            logger.on('error', ({namespace, message}) => {
+            logger.on('error', ({message}) => {
                 clearTimeout(timeout);
                 reject(new Error(`Unexpected error caught: ${message}`));
             });

@@ -1,6 +1,5 @@
 'use strict';
 
-const assert = require('assert');
 const EventEmitter = require('events');
 const util = require('util');
 const debug = require('debug');
@@ -151,7 +150,9 @@ class ProductionLogger extends Logger {
             this._emitError(namespace, message);
         }
 
+        /* eslint-disable no-console */
         console[stream](line);
+        /* eslint-enable no-console */
     }
 }
 
@@ -205,7 +206,7 @@ module.exports = function (appNamespace) {
         return IS_PRODUCTION
             ? new ProductionLogger(instanceOptions)
             : new DevelopmentLogger(instanceOptions);
-    }
+    };
 };
 
 // also export default format function for tests
