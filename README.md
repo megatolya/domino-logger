@@ -29,11 +29,12 @@ const loggerFactory = dominoLogger('kinopoisk');
 // available options are:
 // - emitErrors: emit errors if logger.error is called (true by default)
 // - format: custom formatting function for production environment
-//     invoked with req (http.incomingMessage), namespace and message
+//     invoked with req (http.incomingMessage), namespace, message and extra
 // - namespace: next level namespace (log namespace is appname:nextlevel then)
+// - extra: some additional object you can use in `format` function
 const loggerInstance = loggerFactory({
     // for example like this
-    format: function (req, namespace, message) {
+    format(req, namespace, message, extra) {
         return moment().format('YYYY-MM-DD HH:mm:ss.SSS') + '\t' +
             'pid:' + process.pid + '\t' +
             'request_id:' + req.uuid + '\t' +
@@ -41,7 +42,7 @@ const loggerInstance = loggerFactory({
             namespace + '\t' +
             message;
     }
-}).on('error', ({namespace, message, req}) => {
+}).on('error', ({req, namespace, message, extra}) => {
     // handle errors
 });
 

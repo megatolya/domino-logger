@@ -12,12 +12,13 @@ const IS_PRODUCTION = (process.env.NODE_ENV === 'production');
  * Default formatter function for production environment
  *
  * @param {http.IncomingMessage} req
- * @param {String} namespace
+ * @param {String} ns
  * @param {String} message
+ * @param {Object} [extra]
  * @return {String} result string
  */
-function formatDefault(req, namespace, message) {
-    return `${moment().format('YYYY-MM-DD HH:mm:ss.SSS')}\t${namespace}\tpid:${process.pid}\t${message}`;
+function formatDefault(req, ns, message, extra = {}) {
+    return `${moment().format('YYYY-MM-DD HH:mm:ss.SSS')}\t${ns}\tpid:${process.pid}\t${message}\t${JSON.stringify(extra)}`;
 }
 
 class Logger extends EventEmitter {
@@ -25,20 +26,10 @@ class Logger extends EventEmitter {
         super();
 
         this._req = req;
-        this._format = format;
+        this._format = typeof format === 'function' ? format : f => f;
         this._appNamespace = appNamespace;
         this._namespace = namespace || '';
         this._emitErrors = emitErrors;
-    }
-
-    _emitError(namespace, ...args) {
-        if (this._emitErrors) {
-            this.emit('error', {
-                namespace,
-                req: this._req,
-                message: util.format(...args)
-            });
-        }
     }
 
     info() {
@@ -104,20 +95,54 @@ class Logger extends EventEmitter {
             namespace: `${this._appNamespace}:${namespace}`
         }, ...args);
     }
+
+    _emitError(namespace, message) {
+        if (this._emitErrors) {
+            this.emit('error', {
+                namespace,
+                req: this._req,
+                message: message
+            });
+        }
+    }
 }
 
 class ProductionLogger extends Logger {
+    /**
+     * @override
+     */
     _log({stream, namespace, method}, ...args) {
-        if (method === 'error') {
-            this._emitError(namespace, ...args);
+        // @link https://nodejs.org/api/util.html#util_util_format_format_args
+        // Trying to find placeholders in first argument
+        // And then calculate all arguments
+        // Maybe last one is object, which we should pass to formatter as a separate argument
+        let extra = {};
+
+        if (args.length > 1 && typeof args[0] === 'string') {
+            const placeholders = args[0].match(/%(s|d|j|%)/ig);
+            const ifPlaceholdersWithExtra = placeholders && args.length - 1 > placeholders.length;
+            const ifNoPlaceholdersWithExtra = !placeholders && args.length > 1;
+
+            if (ifPlaceholdersWithExtra || ifNoPlaceholdersWithExtra) {
+                extra = args.pop();
+            }
         }
 
-        const line = this._format(this._req, namespace, util.format(...args));
+        const message = util.format(...args);
+        const line = this._format(this._req, namespace, message, extra);
+
+        if (method === 'error') {
+            this._emitError(namespace, message);
+        }
+
         console[stream](line);
     }
 }
 
 class DevelopmentLogger extends Logger {
+    /**
+     * @override
+     */
     _log({stream, namespace, method}, ...args) {
         if (!developDebugFns.has(namespace)) {
             developDebugFns.set(namespace, debug(namespace));
@@ -128,6 +153,7 @@ class DevelopmentLogger extends Logger {
         }
 
         const logFn = developDebugFns.get(namespace);
+
         logFn(...args);
     }
 }
