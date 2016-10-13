@@ -15,25 +15,11 @@ const IS_PRODUCTION = (process.env.NODE_ENV === 'production');
  * @param {http.IncomingMessage} req
  * @param {String} namespace
  * @param {String} message
- * @param {Map} [map]
+ * @param {Object} [extra]
  * @return {String} result string
  */
-function formatDefault(req, namespace, message, map) {
-    const obj = convertMapToObject(map);
-
-    return `${moment().format('YYYY-MM-DD HH:mm:ss.SSS')}\t${namespace}\tpid:${process.pid}\t${message}${obj.length > 0 ? `\t${JSON.stringify(obj)}` : ''}`;
-}
-
-function convertMapToObject(map) {
-    let obj = {};
-
-    if (map instanceof Map) {
-        map.forEach((value, key) => {
-            obj[key] = value;
-        });
-    }
-
-    return obj;
+function formatDefault(req, namespace, message, extra) {
+    return `${moment().format('YYYY-MM-DD HH:mm:ss.SSS')}\t${namespace}\tpid:${process.pid}\t${message}${extra && Object.keys(extra).length > 0 ? `\t${JSON.stringify(extra)}` : ''}`;
 }
 
 class Logger extends EventEmitter {
@@ -126,7 +112,7 @@ class Logger extends EventEmitter {
         // Trying to find placeholders in first argument
         // And then calculate all arguments
         // Maybe last one is object, which we should pass to formatter as a separate argument
-        let map;
+        let extra;
 
         if (args.length > 1 && typeof args[0] === 'string') {
             const placeholders = args[0].match(/%(s|d|j|%)/ig);
@@ -134,15 +120,15 @@ class Logger extends EventEmitter {
             const hasNoPlaceholdersWithMap = !placeholders && args.length > 1;
             let lastArgument = args[args.length - 1];
 
-            if ((hasPlaceholdersWithMap || hasNoPlaceholdersWithMap) && (lastArgument instanceof Map)) {
-                map = args.pop();
+            if ((hasPlaceholdersWithMap || hasNoPlaceholdersWithMap) && typeof lastArgument === 'object' && lastArgument !== null) {
+                extra = args.pop();
             }
         }
 
         const message = util.format(...args);
 
         return {
-            map,
+            extra,
             message
         };
     }
@@ -153,8 +139,8 @@ class ProductionLogger extends Logger {
      * @override
      */
     _log({stream, namespace, method}, ...args) {
-        const {message, map} = this._splitArguments(...args);
-        const line = this._format(this._req, namespace, message, map);
+        const {message, extra} = this._splitArguments(...args);
+        const line = this._format(this._req, namespace, message, extra);
 
         if (method === 'error') {
             this._emitError(namespace, message);
@@ -169,10 +155,9 @@ class DevelopmentLogger extends Logger {
      * @override
      */
     _log({stream, namespace, method}, ...args) {
-        const {message, map} = this._splitArguments(...args);
-        let obj = convertMapToObject(map);
-        obj = Object.keys(obj).length ? JSON.stringify(obj) : null;
-        const line = [message, obj].filter(Boolean).join(' ');
+        let {message, extra} = this._splitArguments(...args);
+        extra = extra && Object.keys(extra).length ? JSON.stringify(extra) : null;
+        const line = [message, extra].filter(Boolean).join(' ');
 
         if (!developDebugFns.has(namespace)) {
             developDebugFns.set(namespace, debug(namespace));

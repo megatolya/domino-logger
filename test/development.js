@@ -56,10 +56,11 @@ describe('domino-logger NODE_ENV=development', () => {
     it('should contains stringify JSON on log message', () => {
         const loggerFactory = dominoLogger(APP_NAME);
         const logger = loggerFactory();
-        const expectedMessage = JSON.stringify({key: 'value'});
+        const extra = {key: 'value'};
+        const expectedMessage = JSON.stringify(extra);
 
         return intercept(() => {
-            logger.log('some message', new Map([['key', 'value']]));
+            logger.log('some message', extra);
         }).then(messages => {
             assert(messages.get(process.stderr)[0].includes(expectedMessage));
         });
