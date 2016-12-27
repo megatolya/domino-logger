@@ -136,6 +136,8 @@ class Logger extends EventEmitter {
             message
         };
     }
+
+    dumpLogs() {}
 }
 
 class ProductionLogger extends Logger {
@@ -150,9 +152,38 @@ class ProductionLogger extends Logger {
             this._emitError(namespace, message);
         }
 
+        this._logLine(stream, line);
+    }
+
+    _logLine(method, line) {
         /* eslint-disable no-console */
-        console[stream](line);
+        console[method](line);
         /* eslint-enable no-console */
+    }
+}
+
+class QloudLogger extends ProductionLogger {
+    dumpLogs() {
+        const logs = this._req && this._req._logs;
+
+        if (!logs) {
+            return;
+        }
+
+        /* eslint-disable no-console */
+        console.log(logs.join('\n'));
+        /* eslint-enable no-console */
+
+        this._req._logs = [];
+    }
+
+    _logLine(method, line) {
+        if (this._req) {
+            const logs = this._req._logs = this._req._logs || [];
+            logs.push(line);
+        } else {
+            super._logLine(method, line);
+        }
     }
 }
 
@@ -196,12 +227,17 @@ module.exports = function (appNamespace) {
             req: null,
             format: undefined,
             namespace: null,
-            emitErrors: true
+            emitErrors: true,
+            qloud: false
         }, options);
 
         instanceOptions.namespace = options.namespace
             ? `${appNamespace}:${options.namespace.toLowerCase()}`
             : appNamespace;
+
+        if (instanceOptions.qloud) {
+            return new QloudLogger(instanceOptions);
+        }
 
         return IS_PRODUCTION
             ? new ProductionLogger(instanceOptions)
