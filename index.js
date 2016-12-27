@@ -138,6 +138,8 @@ class Logger extends EventEmitter {
     }
 
     dumpLogs() {}
+
+    fields() {}
 }
 
 class ProductionLogger extends Logger {
@@ -163,7 +165,12 @@ class ProductionLogger extends Logger {
 }
 
 class QloudLogger extends ProductionLogger {
-    dumpLogs() {
+    fields(fields) {
+        this._req._logFields = this._req._logFields || {};
+        Object.assign(this._req._logFields, fields);
+    }
+
+    logRequest() {
         const logs = this._req && this._req._logs;
 
         if (!logs) {
@@ -171,7 +178,10 @@ class QloudLogger extends ProductionLogger {
         }
 
         /* eslint-disable no-console */
-        console.log(logs.join('\n'));
+        console.log(JSON.stringify({
+            message: logs.join('\n'),
+            '@fields': this._req._logFields
+        }));
         /* eslint-enable no-console */
 
         this._req._logs = [];
