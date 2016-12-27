@@ -165,7 +165,7 @@ class Logger extends EventEmitter {
         };
     }
 
-    dumpLogs() {}
+    logRequest() {}
 
     fields() {}
 }
