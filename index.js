@@ -18,7 +18,7 @@ const IS_PRODUCTION = (process.env.NODE_ENV === 'production');
  * @return {String} result string
  */
 function formatDefault(req, namespace, message, extra) {
-    return `${moment().format('YYYY-MM-DD HH:mm:ss.SSS')}\t${namespace}\tpid:${process.pid}\t${message}${extra && Object.keys(extra).length > 0 ? `\t${JSON.stringify(extra)}` : ''}`;
+    return `${moment().format('YYYY-MM-DD HH:mm:ss.SSS')}\t${message}${extra && Object.keys(extra).length > 0 ? `\t${JSON.stringify(extra)}` : ''}`;
 }
 
 class Logger extends EventEmitter {
@@ -175,6 +175,36 @@ class QloudLogger extends ProductionLogger {
 
         if (!logs) {
             return;
+        }
+
+        let header = '';
+
+        const fields = this._req && this._req._logFields || {};
+
+        header = moment().format('YYYY-MM-DD HH:mm:ss.SSS') + ' ';
+
+        if (fields.method) {
+            header += `${fields.method} `;
+        }
+
+        if (fields.url) {
+            header += `${fields.url} `;
+        }
+
+        if (fields.status) {
+            header += `${fields.status} `;
+        }
+
+        if (fields.requestTime || fields.reactRenderTime) {
+            header += `totalTime=${fields.requestTime}ms reactTime=${fields.reactRenderTime}ms `;
+        }
+
+        if (fields.requestId) {
+            header += `requestId=${fields.requestId} `;
+        }
+
+        if (header) {
+            logs.unshift(header);
         }
 
         /* eslint-disable no-console */
