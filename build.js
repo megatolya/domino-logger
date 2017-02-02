@@ -18,7 +18,7 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production';
  * @return {String} result string
  */
 function formatDefault(req, namespace, message, extra) {
-    return `${ moment().format('YYYY-MM-DD HH:mm:ss.SSS') }\t${ namespace }\tpid:${ process.pid }\t${ message }${ extra && Object.keys(extra).length > 0 ? `\t${ JSON.stringify(extra) }` : '' }`;
+    return `${moment().format('YYYY-MM-DD HH:mm:ss.SSS')}\t${message}${extra && Object.keys(extra).length > 0 ? `\t${JSON.stringify(extra)}` : ''}`;
 }
 
 class Logger extends EventEmitter {
@@ -54,7 +54,7 @@ class Logger extends EventEmitter {
         this._log.apply(this, [{
             stream: 'log',
             method: 'info',
-            namespace: `${ this._namespace }:info`
+            namespace: `${this._namespace}:info`
         }].concat(Array.prototype.slice.call(arguments)));
     }
 
@@ -66,7 +66,7 @@ class Logger extends EventEmitter {
         this._log.apply(this, [{
             stream: 'log',
             method: 'info',
-            namespace: `${ this._appNamespace }:${ namespace }`
+            namespace: `${this._appNamespace}:${namespace}`
         }].concat(args));
     }
 
@@ -74,7 +74,7 @@ class Logger extends EventEmitter {
         this._log.apply(this, [{
             stream: 'error',
             method: 'error',
-            namespace: `${ this._namespace }:error`
+            namespace: `${this._namespace}:error`
         }].concat(Array.prototype.slice.call(arguments)));
     }
 
@@ -86,7 +86,7 @@ class Logger extends EventEmitter {
         this._log.apply(this, [{
             stream: 'error',
             method: 'error',
-            namespace: `${ this._appNamespace }:${ namespace }`
+            namespace: `${this._appNamespace}:${namespace}`
         }].concat(args));
     }
 
@@ -94,7 +94,7 @@ class Logger extends EventEmitter {
         this._log.apply(this, [{
             stream: 'error',
             method: 'warn',
-            namespace: `${ this._namespace }:warn`
+            namespace: `${this._namespace}:warn`
         }].concat(Array.prototype.slice.call(arguments)));
     }
 
@@ -106,7 +106,7 @@ class Logger extends EventEmitter {
         this._log.apply(this, [{
             stream: 'error',
             method: 'warn',
-            namespace: `${ this._appNamespace }:${ namespace }`
+            namespace: `${this._appNamespace}:${namespace}`
         }].concat(args));
     }
 
@@ -114,7 +114,7 @@ class Logger extends EventEmitter {
         this._log.apply(this, [{
             stream: 'error',
             method: 'log',
-            namespace: `${ this._namespace }:log`
+            namespace: `${this._namespace}:log`
         }].concat(Array.prototype.slice.call(arguments)));
     }
 
@@ -126,7 +126,7 @@ class Logger extends EventEmitter {
         this._log.apply(this, [{
             stream: 'error',
             method: 'log',
-            namespace: `${ this._appNamespace }:${ namespace }`
+            namespace: `${this._appNamespace}:${namespace}`
         }].concat(args));
     }
 
@@ -217,6 +217,36 @@ class QloudLogger extends ProductionLogger {
             return;
         }
 
+        let header = '';
+
+        const fields = this._req && this._req._logFields || {};
+
+        header = moment().format('YYYY-MM-DD HH:mm:ss.SSS') + ' ';
+
+        if (fields.method) {
+            header += `${fields.method} `;
+        }
+
+        if (fields.url) {
+            header += `${fields.url} `;
+        }
+
+        if (fields.status) {
+            header += `${fields.status} `;
+        }
+
+        if (fields.requestTime || fields.reactRenderTime) {
+            header += `totalTime=${fields.requestTime}ms reactTime=${fields.reactRenderTime}ms `;
+        }
+
+        if (fields.requestId) {
+            header += `requestId=${fields.requestId} `;
+        }
+
+        if (header) {
+            logs.unshift(header);
+        }
+
         /* eslint-disable no-console */
         console.log(JSON.stringify({
             message: logs.join('\n'),
@@ -295,7 +325,7 @@ module.exports = function (appNamespace) {
             qloud: false
         }, options);
 
-        instanceOptions.namespace = options.namespace ? `${ appNamespace }:${ options.namespace.toLowerCase() }` : appNamespace;
+        instanceOptions.namespace = options.namespace ? `${appNamespace}:${options.namespace.toLowerCase()}` : appNamespace;
 
         if (instanceOptions.qloud) {
             return new QloudLogger(instanceOptions);
